@@ -60,6 +60,31 @@ def duplicate_test(element, config):
     put_in_cache(teststring)
     return False
 
+def extract_lang(tree, temp_text, temp_comments, strict=False):
+    """
+    extracts the language from HTML meta-elements and the language_classifier if library installed
+    returns the first language extracted
+    """
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Language
+    elems = set()
+    target_elements = tree.findall('.//meta[@http-equiv="content-language"][@content]')
+    if target_elements:
+        elems.update([x.get('content').lower()[:2] for x in target_elements])
+    # locale
+    target_elements = tree.findall('.//meta[@property="og:locale"][@content]')
+    if target_elements:
+        elems.update([x.get('content').lower()[:2] for x in target_elements])
+    # HTML lang attribute: sometimes a wrong indication
+    if strict is True:
+        target_elements = tree.xpath('//html[@lang]')
+        if target_elements:
+            elems.update([x.get('content').lower()[:2] for x in target_elements])
+    # external tool
+    classified_lang = language_classifier(temp_text, temp_comments)
+    if classified_lang:
+        elems.add(classified_lang)
+    return [*elems, ][0]
+
 
 def check_html_lang(tree, target_language, strict=False):
     '''Check HTML meta-elements for language information and split

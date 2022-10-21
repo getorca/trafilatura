@@ -27,7 +27,7 @@ from lxml.html import tostring
 # own
 from .external import justext_rescue, sanitize_tree, SANITIZED_XPATH, try_readability
 from .filters import (LANGID_FLAG, check_html_lang, content_fingerprint, duplicate_test,
-                      language_filter, text_chars_test)
+                      language_filter, text_chars_test, extract_lang)
 from .htmlprocessing import (convert_tags, handle_textnode, process_node,
                              delete_by_link_density, link_density_test_tables,
                              prune_unwanted_nodes, tree_cleaning)
@@ -949,6 +949,10 @@ def bare_extraction(filecontent, url=None, no_fallback=False,  # fast=False,
         if deduplicate is True and duplicate_test(postbody, config) is True:
             LOGGER.error('duplicate document for URL %s', url)
             raise ValueError
+
+
+        # extract lang
+        document.language = extract_lang(tree_backup_2, temp_text, temp_comments)
 
         # sanity check on language
         if target_language is not None:
